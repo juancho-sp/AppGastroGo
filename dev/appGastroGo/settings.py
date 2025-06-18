@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',  # para gestionar usuarios
+    'orders',  # para gestionar pedidos
+    'menu',  # para gestionar el menú
+    'cash_register',  # para gestionar el registro de caja
+    'ingreso',  # para autenticación
 ]
 
 MIDDLEWARE = [
@@ -64,6 +69,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # usa plantillas globales
+        'APP_DIRS': True,
     },
 ]
 
@@ -114,8 +121,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-import os
 
 STATIC_URL = '/static/'
 
