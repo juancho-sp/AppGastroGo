@@ -38,11 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',  # para gestionar usuarios
+    'users',  # para gestionar usuarios OK
     'orders',  # para gestionar pedidos
     'menu',  # para gestionar el menú
     'cash_register',  # para gestionar el registro de caja
-    'ingreso',  # para autenticación
+    'ingreso',  # para autenticación OK
 ]
 
 MIDDLEWARE = [
