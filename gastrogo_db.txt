@@ -1,5 +1,5 @@
-crear la base de datos
+crear la base de datos don mysql
 
-gastrogo_db con MySQL
+nombrarla con el nombre de gastrogo_db
 
 migrar antes de correr el programa

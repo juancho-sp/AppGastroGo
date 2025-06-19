@@ -14,18 +14,15 @@
 </nav>
 {% endblock %}
 
+{% block titulo_principal %}Administración{% endblock %}
+
 {% block contenido %}
-
-{% block titulo_principal %}
-Administración
-{% endblock %}
-
 <div class="tab-content container mb-2" id="nav-tabContent">
     {% for message in messages %}
         {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-        <div class="alert alert-danger">{{ message }}</div>
+        <div class="alert alert-danger alert-dismissible-auto">{{ message }}</div>
         {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-        <div class="alert alert-success">{{ message }}</div>
+        <div class="alert alert-success alert-dismissible-auto">{{ message }}</div>
         {% endif %}
     {% endfor %}
 <!--Tab para nuevo usuario-->
