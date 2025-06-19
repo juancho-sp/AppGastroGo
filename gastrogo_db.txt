@@ -1,0 +1,5 @@
+crear la base de datos
+
+gastrogo_db con MySQL
+
+migrar antes de correr el programa

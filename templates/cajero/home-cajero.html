@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Administrador GastroGo{% endblock %}
-
 {% block navbar %}
 <nav class="container  p-3"> <!--Tabs para menús de trabajo-->
     <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -15,6 +13,11 @@
 {% endblock %}
 
 {% block contenido %}
+
+{% block titulo_principal %}
+Caja
+{% endblock %}
+
 <div class="tab-content container mb-3" id="nav-tabContent">
 <!--Tab para nuevo pedido-->
     <div class="tab-pane fade show active" id="nav-NuevoPedido" role="tabpanel" aria-labelledby="nav-NuevoPedido-tab">

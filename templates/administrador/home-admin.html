@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Administrador GastroGo{% endblock %}
 
 {% block navbar %}
 <nav class="container  p-3"> <!--Tabs para menús de trabajo-->
@@ -16,51 +15,64 @@
 {% endblock %}
 
 {% block contenido %}
+
+{% block titulo_principal %}
+Administración
+{% endblock %}
+
 <div class="tab-content container mb-2" id="nav-tabContent">
+    {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-danger">{{ message }}</div>
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
 <!--Tab para nuevo usuario-->
 <div class="tab-pane fade show active" id="nav-NuevoUsuario" role="tabpanel" aria-labelledby="nav-NuevoUsuario-tab">
     <section class="container mb-3">
         <div class="row justify-content-center">
             <div class="col w-auto">
                 <div class="card p-4">
-                    <form>
-                        <div class="mb-3">
+
+                    <form method="POST" action="{% url 'crear_usuario' %}">
+                        {% csrf_token %}
+
                             <label for="firstName" class="form-label">Nombres</label>
-                            <input type="text" class="form-control" id="firstName" required>
-                        </div>
+                            <input type="text" class="form-control" id="firstName" name="first_name" required>                        
                         <div class="mb-3">
                             <label for="lastName" class="form-label">Apellidos</label>
-                            <input type="text" class="form-control" id="lastName" required>
+                            <input type="text" class="form-control" id="lastName" name="last_name" required>
                         </div>
                         <div class="mb-3">
                             <label for="documentType" class="form-label">Tipo de Documento</label>
-                            <select class="form-select" id="documentType" required>
+                            <select class="form-select" id="documentType" name="tipo_documento" required>
                                 <option value="" disabled selected>Seleccione el tipo de documento</option>
-                                <option value="cc">Cédula de Ciudadanía</option>
-                                <option value="passport">Pasaporte</option>
-                                <option value="ti">Tarjeta de Identidad</option>
-                                <option value="ce">Cédula de Extranjería</option>
+                                <option value="CC">Cédula de Ciudadanía</option>
+                                <option value="PA">Pasaporte</option>
+                                <option value="TI">Tarjeta de Identidad</option>
+                                <option value="CE">Cédula de Extranjería</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="documentNumber" class="form-label">Número de Documento</label>
-                            <input type="text" class="form-control" id="documentNumber" required>
+                            <input type="text" class="form-control" id="documentNumber" name="numero_documento" required>
                         </div>
                         <div class="mb-3">
                             <label for="birthDate" class="form-label">Fecha de Nacimiento</label>
-                            <input type="date" class="form-control" id="birthDate" required>
+                            <input type="date" class="form-control" id="birthDate" name="fecha_nacimiento" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" required>
+                            <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <div class="mb-3">
                             <label for="role" class="form-label">Rol</label>
-                            <select class="form-select" id="role" required>
+                            <select class="form-select" id="role" name="rol" required>
                                 <option value="" disabled selected>Seleccione un rol</option>
                                 <option value="admin">Administrador</option>
-                                <option value="chef">Chef</option>
-                                <option value="waiter">Mesero</option>
+                                <option value="cocinero">Chef</option>
+                                <option value="cajero">Mesero</option>
                             </select>
                         </div>
                         <div class="row justify-content-center p-3">
@@ -72,11 +84,16 @@
         </div>
     </section>               
 </div>
+
+
 <!--Tab para editar usuario-->
 <div class="tab-pane fade" id="nav-EditarUsuario" role="tabpanel" aria-labelledby="nav-EditarUsuario-tab">
     <section class="container bg-white rounded mb-3">
         <div class="table-responsive">
             <table class="table table-hover">
+                <div>
+    Total perfiles cargados: {{ perfiles|length }}
+</div>
                 <thead>
                     <tr>
                         <th class="text-center">ID</th>
@@ -91,78 +108,113 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for perfil in perfiles %}
                     <tr>
-                        <td class="text-center">001</td>
-                        <td class="text-center">Juan</td>
-                        <td class="text-center">Perez</td>
-                        <td class="text-center">CC</td>
-                        <td class="text-center">121212121</td>
-                        <td class="text-center">06/06/1982</td>
-                        <td class="text-center">*********</td>
-                        <td class="text-center">Cajero</td>
-                        <td class="text-center"><button class="btn btn-warning " data-bs-toggle="modal" data-bs-target="#editUserModal" onclick="loadUserData('Juan', 'Pérez', 'juan.perez@email.com')">Editar</button></td>
-                        <td><button class="btn btn-danger" data-bs-toggle="modal" type="submit">Elminar</button></td>
+                        <td class="text-center">{{ perfil.id }}</td>
+                        <td class="text-center">{{ perfil.user.first_name }}</td>
+                        <td class="text-center">{{ perfil.user.last_name }}</td>
+                        <td class="text-center">{{ perfil.tipo_documento }}</td>
+                        <td class="text-center">{{ perfil.numero_documento }}</td>
+                        <td class="text-center">{{ perfil.fecha_nacimiento }}</td>
+                        <td class="text-center">********</td>
+                        <td class="text-center">{{ perfil.rol }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-warning" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editUserModal"
+                                    data-id="{{ perfil.id }}"
+                                    data-nombre="{{ perfil.user.first_name }}"
+                                    data-apellido="{{ perfil.user.last_name }}"
+                                    data-tipodoc="{{ perfil.tipo_documento }}"
+                                    data-doc="{{ perfil.numero_documento }}"
+                                    data-nacimiento="{{ perfil.fecha_nacimiento|date:'Y-m-d' }}"
+                                    data-rol="{{ perfil.rol }}"
+                                    onclick="cargarDatosModal(this)">
+                                Editar
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <form method="POST" action="{% url 'eliminar_usuario' perfil.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                            </form>
+                        </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+    <!-- Modal para editar usuario -->
+    <script>
+    function cargarDatosModal(button) {
+        document.getElementById('perfilId').value = button.dataset.id;
+        document.getElementById('firstNameModal').value = button.dataset.nombre;
+        document.getElementById('lastNameModal').value = button.dataset.apellido;
+        document.getElementById('documentTypeModal').value = button.dataset.tipodoc;
+        document.getElementById('documentNumberModal').value = button.dataset.doc;
+        document.getElementById('birthDateModal').value = button.dataset.nacimiento;
+        document.getElementById('roleModal').value = button.dataset.rol;
+        document.getElementById('passwordModal').value = '';
+    }
+    </script>
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel">Editar Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editUserForm">
-                        <div class="mb-3">
-                            <label for="firstName" class="form-label">Nombres</label>
-                            <input type="text" class="form-control" id="firstName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastName" class="form-label">Apellidos</label>
-                            <input type="text" class="form-control" id="lastName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="documentType" class="form-label">Tipo de Documento</label>
-                            <select class="form-select" id="documentType" required>
-                                <option value="" disabled selected>Seleccione el tipo de documento</option>
-                                <option value="cc">Cédula de Ciudadanía</option>
-                                <option value="passport">Pasaporte</option>
-                                <option value="ti">Tarjeta de Identidad</option>
-                                <option value="ce">Cédula de Extranjería</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="documentNumber" class="form-label">Número de Documento</label>
-                            <input type="text" class="form-control" id="documentNumber" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="birthDate" class="form-label">Fecha de Nacimiento</label>
-                            <input type="date" class="form-control" id="birthDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Rol</label>
-                            <select class="form-select" id="role" required>
-                                <option value="" disabled selected>Seleccione un rol</option>
-                                <option value="admin">Administrador</option>
-                                <option value="chef">Chef</option>
-                                <option value="waiter">Mesero</option>
-                            </select>
-                        </div>
-                        <div class="row justify-content-center p-3">
-                            <button type="submit" class="btn btn-fire w-50 mt-3">Actualizar Usuario</button>
-                        </div>
-                    </form>
-                </div>
+            <form method="POST" action="{% url 'actualizar_usuario' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="perfil_id" id="perfilId">
+            <div class="modal-header">
+            <h5 class="modal-title" id="editUserModalLabel">Editar Usuario</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
+            <div class="modal-body">
+            <div class="mb-3">
+                <label for="firstNameModal" class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="firstNameModal" name="first_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="lastNameModal" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="lastNameModal" name="last_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="documentTypeModal" class="form-label">Tipo de Documento</label>
+                <select class="form-select" id="documentTypeModal" name="tipo_documento" required>
+                <option value="" disabled>Seleccione el tipo de documento</option>
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="TI">Tarjeta de Identidad</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PA">Pasaporte</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="documentNumberModal" class="form-label">Número de Documento</label>
+                <input type="text" class="form-control" id="documentNumberModal" name="numero_documento" required>
+            </div>
+            <div class="mb-3">
+                <label for="birthDateModal" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control" id="birthDateModal" name="fecha_nacimiento" required>
+            </div>
+            <div class="mb-3">
+                <label for="passwordModal" class="form-label">Nueva Contraseña</label>
+                <input type="password" class="form-control" id="passwordModal" name="password">
+            </div>
+            <div class="mb-3">
+                <label for="roleModal" class="form-label">Rol</label>
+                <select class="form-select" id="roleModal" name="rol" required>
+                <option value="" disabled>Seleccione un rol</option>
+                <option value="admin">Administrador</option>
+                <option value="cocinero">Cocinero</option>
+                <option value="cajero">Cajero</option>
+                </select>
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
         </div>
     </div>
+
 </div>
 <!--Tab para consultar pedido-->
 <div class="tab-pane fade" id="nav-DetallePedido" role="tabpanel" aria-labelledby="nav-DetallePedido-tab">
