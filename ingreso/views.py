@@ -71,7 +71,7 @@ def home_cocinero(request):
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('loginView')
 
 @login_required
 def cambiar_rol(request):

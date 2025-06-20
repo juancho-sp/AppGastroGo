@@ -131,7 +131,7 @@
                             </button>
                         </td>
                         <td class="text-center">
-                            <form method="POST" action="{% url 'eliminar_usuario' perfil.id %}">
+                            <form method="POST" action="{% url 'eliminar_usuario' perfil.id %}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger">Eliminar</button>
                             </form>
