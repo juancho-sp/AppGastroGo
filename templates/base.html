@@ -117,6 +117,12 @@
                 });
             }, 3000);
         </script>
+        <script>
+            window.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('birthDate').value = today;
+            });
+        </script>
         {% endblock %}
     </body>
 </html>
