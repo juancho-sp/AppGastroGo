@@ -11,4 +11,5 @@ urlpatterns = [
     path('administrador/', include('users.urls')),  # Redirige a las URLs de la aplicación users
     path('operativo/', include('orders.urls')),  # Redirige a las URLs de la aplicación cajero
     path('logout/', logout_view, name='logout'),
+    path('menu/', include('menu.urls')),    # Redirige a las URLs de la aplicación menu
 ]
