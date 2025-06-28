@@ -108,6 +108,7 @@
             }
         });
         </script>
+        
         <script>
             // Ocultar alertas después de 4 segundos (4000 milisegundos)
             setTimeout(function() {
@@ -119,12 +120,16 @@
                 });
             }, 3000);
         </script>
+        
         <script>
             window.addEventListener('DOMContentLoaded', function () {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('birthDate').value = today;
             });
         </script>
+
+        
+        // Script actualizar el precio del ingrediente al cambiar el nombre
         <script>
             document.getElementById('nombre-ingrediente').addEventListener('change', function () {
                 const nombre = this.value;
@@ -144,11 +149,92 @@
                 return false;
             }
         </script>
+
         <script>
-            document.getElementById('nombre-ingrediente').addEventListener('input', function () {
+            const inputIngrediente = document.getElementById('nombre-ingrediente');
+            const precioIngrediente = document.getElementById('precio-ingrediente');
+        
+            // Convertir texto a mayúsculas mientras se escribe
+            inputIngrediente.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
+        
+            // Actualizar el precio automáticamente al seleccionar un ingrediente
+            inputIngrediente.addEventListener('change', function () {
+                const nombre = this.value;
+                fetch(`/menu/ingredientes/precio/?nombre=${encodeURIComponent(nombre)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        precioIngrediente.value = data.precio || '';
+                    });
+            });
+        
+            // Mostrar el datalist al hacer doble clic
+            inputIngrediente.addEventListener('dblclick', function () {
+                this.setAttribute('list', 'ingredientes-lista');
+                this.focus();
+                this.select();
+            });
+        
+            // Mostrar opciones al enfocar el campo (cuando está vacío)
+            inputIngrediente.addEventListener('focus', function () {
+                this.setAttribute('list', 'ingredientes-lista');
+            });
+        
+            // Confirmar antes de eliminar
+            function confirmarEliminar() {
+                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este ingrediente?");
+                if (confirmacion) {
+                    document.getElementById('accion').value = 'eliminar';
+                    document.querySelector('#nav-CrearIngrediente form').submit(); // envía el form
+                }
+                return false;
+            }
         </script>
+        <script>
+            function enviarFormularioIngrediente(accion) {
+                document.getElementById('accion-ingrediente').value = accion;
+                document.querySelector('#nav-CrearIngrediente form').submit();
+            }
+        
+            function confirmarEliminarIngrediente() {
+                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este ingrediente?");
+                if (confirmacion) {
+                    enviarFormularioIngrediente('eliminar');
+                }
+            }
+        </script>    
+        <script>
+            // Mayúsculas al escribir
+            document.getElementById('nombre-plato').addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        
+            // Obtener precio automáticamente
+            document.getElementById('nombre-plato').addEventListener('change', function () {
+                const nombre = this.value;
+                fetch(`/menu/platos/precio/?nombre=${encodeURIComponent(nombre)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('precio-plato').value = data.precio || '';
+                    });
+            });
+        
+            // Enviar formulario según acción
+            function enviarFormulario(accion) {
+                document.getElementById('accion-plato').value = accion;
+                document.querySelector('#nav-CrearPLato form').submit();
+            }
+        
+            // Confirmar antes de eliminar
+            function confirmarEliminar() {
+                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este plato?");
+                if (confirmacion) {
+                    enviarFormulario('eliminar');
+                }
+            }
+        </script>>
+
         {% endblock %}
     </body>
 </html>
