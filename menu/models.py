@@ -12,4 +12,5 @@ class Plato(models.Model):
     precio = models.DecimalField(max_digits=6, decimal_places=1)
 
     def __str__(self):
-        return self.nombre
+        # Muestra nombre y precio en el desplegable de selección de platos
+        return f'{self.nombre} - ${self.precio}'

@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'gastrogo_db',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'C4m1l02008*.',
         'HOST': 'localhost',
         'PORT': '3306',
     }
