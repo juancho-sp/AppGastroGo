@@ -8,7 +8,6 @@
         <button class="nav-link active enlace" id="nav-NuevoUsuario-tab" data-bs-toggle="tab" data-bs-target="#nav-NuevoUsuario" type="button" role="tab" aria-controls="nav-NuevoUsuario" aria-selected="false">Crear Usuario</button>
         <button class="nav-link enlace" id="nav-EditarUsuario-tab" data-bs-toggle="tab" data-bs-target="#nav-EditarUsuario" type="button" role="tab" aria-controls="nav-EditarUsuario" aria-selected="false">Editar Usuario</button>
         <button class="nav-link enlace" id="nav-DetallePedido-tab" data-bs-toggle="tab" data-bs-target="#nav-DetallePedido" type="button" role="tab" aria-controls="nav-DetallePedido" aria-selected="true">Consultar pedido</button>
-        <button class="nav-link enlace" id="nav-CrearIngrediente-tab" data-bs-toggle="tab" data-bs-target="#nav-CrearIngrediente" type="button" role="tab" aria-controls="nav-CrearIngrediente" aria-selected="false">Crear Ingrediente</button>
         <button class="nav-link enlace" id="nav-CrearPLato-tab" data-bs-toggle="tab" data-bs-target="#nav-CrearPLato" type="button" role="tab" aria-controls="nav-CrearPLato" aria-selected="false">Crear Plato</button>
     </div>
 </nav>
@@ -276,57 +275,6 @@
         </div>
     </section>
 </div>
-
-
-<!--Tab para crear ingrediente-->
-<div class="tab-pane fade" id="nav-CrearIngrediente" role="tabpanel" aria-labelledby="nav-CrearIngrediente-tab">
-    <section class="container mb-3">
-        <div class="row justify-content-center">
-            <div class="col w-auto">
-                <div class="card p-4">
-                    <form method="POST" action="{% url 'gestion_ingredientes' %}" class="d-flex flex-column align-items-center" autocomplete="off">
-                        {% csrf_token %}
-                        <input type="hidden" name="accion" id="accion-ingrediente" value="crear">
-                    
-                        <label class="h4">Nombre del ingrediente</label>
-                        <input list="ingredientes-lista" name="nombre" id="nombre-ingrediente"
-                            class="form-control w-50" placeholder="Escriba o seleccione" autocomplete="off" required>
-
-                        <datalist id="ingredientes-lista">
-                            {% for ing in ingredientes %}
-                                <option value="{{ ing.nombre }}">
-                            {% endfor %}
-                        </datalist>
-                        <label class="h4 mt-2">Precio</label>
-                        <div class="mb-3 input-group w-50">
-                            <span class="input-group-text">$</span>
-                                <input type="number" 
-                                name="precio"
-                                step="50"
-                                min="0"
-                                id="precio-ingrediente"
-                                class="form-control w-50" 
-                                placeholder="0.0" required>
-                        </div>
-                        <div class="mt-3">
-                            <!-- Botón Crear -->
-                            <button type="button" class="btn btn-success m-2"
-                                onclick="enviarFormularioIngrediente('crear')">Crear</button>
-
-                            <!-- Botón Editar -->
-                            <button type="button" class="btn btn-warning m-2"
-                                onclick="enviarFormularioIngrediente('editar')">Editar</button>
-
-                            <!-- Botón Eliminar -->
-                            <button type="button" class="btn btn-danger m-2"
-                                onclick="confirmarEliminarIngrediente()">Eliminar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-    </section>
-</div>
-
 
 <!--Tab para crear plato-->
 <div class="tab-pane fade" id="nav-CrearPLato" role="tabpanel" aria-labelledby="nav-CrearPLato-tab">

@@ -6,13 +6,16 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
+from menu.models import Plato
 
 @login_required
 def inicioAdministrador(request):
     perfiles = Perfil.objects.select_related('user').all()
     print('Total perfiles:', len(perfiles))
+    platos = Plato.objects.all()
     return render(request, 'administrador/home-admin.html', {
-        'perfiles': perfiles
+        'perfiles': perfiles,
+        'platos': platos,
     })
 
 @login_required

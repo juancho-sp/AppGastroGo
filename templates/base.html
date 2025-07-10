@@ -87,6 +87,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" 
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" 
         crossorigin="anonymous"></script>
+
         <script>
         // Al hacer clic en una pestaña, guardamos el ID en localStorage
         document.addEventListener("DOMContentLoaded", function () {
@@ -128,82 +129,6 @@
             });
         </script>
 
-        
-        // Script actualizar el precio del ingrediente al cambiar el nombre
-        <script>
-            document.getElementById('nombre-ingrediente').addEventListener('change', function () {
-                const nombre = this.value;
-                fetch(`/menu/ingredientes/precio/?nombre=${encodeURIComponent(nombre)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('precio-ingrediente').value = data.precio || '';
-                    });
-            });
-        
-            function confirmarEliminar() {
-                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este ingrediente?");
-                if (confirmacion) {
-                    document.getElementById('accion').value = 'eliminar';
-                    return true;
-                }
-                return false;
-            }
-        </script>
-
-        <script>
-            const inputIngrediente = document.getElementById('nombre-ingrediente');
-            const precioIngrediente = document.getElementById('precio-ingrediente');
-        
-            // Convertir texto a mayúsculas mientras se escribe
-            inputIngrediente.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
-        
-            // Actualizar el precio automáticamente al seleccionar un ingrediente
-            inputIngrediente.addEventListener('change', function () {
-                const nombre = this.value;
-                fetch(`/menu/ingredientes/precio/?nombre=${encodeURIComponent(nombre)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        precioIngrediente.value = data.precio || '';
-                    });
-            });
-        
-            // Mostrar el datalist al hacer doble clic
-            inputIngrediente.addEventListener('dblclick', function () {
-                this.setAttribute('list', 'ingredientes-lista');
-                this.focus();
-                this.select();
-            });
-        
-            // Mostrar opciones al enfocar el campo (cuando está vacío)
-            inputIngrediente.addEventListener('focus', function () {
-                this.setAttribute('list', 'ingredientes-lista');
-            });
-        
-            // Confirmar antes de eliminar
-            function confirmarEliminar() {
-                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este ingrediente?");
-                if (confirmacion) {
-                    document.getElementById('accion').value = 'eliminar';
-                    document.querySelector('#nav-CrearIngrediente form').submit(); // envía el form
-                }
-                return false;
-            }
-        </script>
-        <script>
-            function enviarFormularioIngrediente(accion) {
-                document.getElementById('accion-ingrediente').value = accion;
-                document.querySelector('#nav-CrearIngrediente form').submit();
-            }
-        
-            function confirmarEliminarIngrediente() {
-                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este ingrediente?");
-                if (confirmacion) {
-                    enviarFormularioIngrediente('eliminar');
-                }
-            }
-        </script>    
         <script>
             // Mayúsculas al escribir
             document.getElementById('nombre-plato').addEventListener('input', function () {
