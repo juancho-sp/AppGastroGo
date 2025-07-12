@@ -1,27 +1,30 @@
 from django import forms
-from .models import Pedido, PedidoPlato
-from menu.models import Plato
+from django.forms import formset_factory
 
-class PedidoForm(forms.ModelForm):
-    class Meta:
-        model = Pedido
-        fields = ['mesa']
-
-class PedidoPlatoForm(forms.ModelForm):
-    plato = forms.ModelChoiceField(
-        queryset=Plato.objects.all(),
-        empty_label="Selecciona un plato",
-        widget=forms.Select(attrs={'class': 'form-select'})
+class PlatoTextoForm(forms.Form):
+    nombre_plato = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control text-uppercase plato-input',
+            'list': 'lista-platos',
+            'required': 'required',
+            'autocomplete': 'off'
+        })
     )
     cantidad = forms.IntegerField(
         min_value=1,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'value': 1})
+        required=True, 
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control cantidad-input',
+            'required': 'required'
+        })
     )
-    nota = forms.CharField(
+    nota_plato = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nota opcional'})
+        widget=forms.Textarea(attrs={
+            'rows': 1,
+            'class': 'form-control',
+            'placeholder': 'Ej: sin cebolla'
+        })
     )
-
-    class Meta:
-        model = PedidoPlato
-        fields = ['plato', 'cantidad', 'nota']

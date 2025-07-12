@@ -18,12 +18,13 @@
             GastroGo
             {% endif %}
         {% endblock %}
-</title>
+        </title>
     </head>
 
     <body>
         <!-- Header por defecto para usuarios ya logueados -->
         {% block header %}
+        
         <header>
         <div class="container card-headerborder-bottom custom-border-bottom p-0 w-100">
             <div class="row align-items-center">
@@ -59,35 +60,33 @@
         </div> 
         </header>
         {% endblock %}
-
         {% block navbar %}{% endblock %}
-
-    <main class="container card-headerborder-bottom custom-border-bottom p-0">
-        {% block contenido %}
-        {% endblock %}
-    </main>
-        <footer class="text-white">
-            <div class="container p-3">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h3 class="display-7">Contacto</h3>
-                        <p class="m-0">Complex, Llanogrande, Rionegro</p>
-                        <p class="m-0">+57 312 270 95 07</p>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <h4 class="display-7">Términos y condiciones</h4>
-                        <p>By PowerDev</p>
+        <main class="container card-headerborder-bottom custom-border-bottom p-0">
+            {% block contenido %}
+            {% endblock %}
+        </main>
+            <footer class="text-white">
+                <div class="container p-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="display-7">Contacto</h3>
+                            <p class="m-0">Complex, Llanogrande, Rionegro</p>
+                            <p class="m-0">+57 312 270 95 07</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h4 class="display-7">Términos y condiciones</h4>
+                            <p>By PowerDev</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </footer>
-        
+            </footer>
+
         {% block scripts %}
-        
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" 
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" 
-        crossorigin="anonymous"></script>
-
+        crossorigin="anonymous">
+        </script>
+        
         <script>
         // Al hacer clic en una pestaña, guardamos el ID en localStorage
         document.addEventListener("DOMContentLoaded", function () {
@@ -109,7 +108,7 @@
             }
         });
         </script>
-        
+
         <script>
             // Ocultar alertas después de 4 segundos (4000 milisegundos)
             setTimeout(function() {
@@ -121,44 +120,6 @@
                 });
             }, 3000);
         </script>
-        
-        <script>
-            window.addEventListener('DOMContentLoaded', function () {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('birthDate').value = today;
-            });
-        </script>
-
-        <script>
-            // Mayúsculas al escribir
-            document.getElementById('nombre-plato').addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
-        
-            // Obtener precio automáticamente
-            document.getElementById('nombre-plato').addEventListener('change', function () {
-                const nombre = this.value;
-                fetch(`/menu/platos/precio/?nombre=${encodeURIComponent(nombre)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('precio-plato').value = data.precio || '';
-                    });
-            });
-        
-            // Enviar formulario según acción
-            function enviarFormulario(accion) {
-                document.getElementById('accion-plato').value = accion;
-                document.querySelector('#nav-CrearPLato form').submit();
-            }
-        
-            // Confirmar antes de eliminar
-            function confirmarEliminar() {
-                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este plato?");
-                if (confirmacion) {
-                    enviarFormulario('eliminar');
-                }
-            }
-        </script>>
 
         {% endblock %}
     </body>

@@ -4,10 +4,30 @@
 {% block navbar %}
 <nav class="container p-3">
     <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <button class="nav-link active enlace" id="nav-NuevoPedido-tab" data-bs-toggle="tab" data-bs-target="#nav-NuevoPedido" type="button" role="tab">Nuevo pedido</button>
-        <button class="nav-link enlace" id="nav-DetallePedido-tab" data-bs-toggle="tab" data-bs-target="#nav-DetallePedido" type="button" role="tab">Consultar pedido</button>
-        <button class="nav-link enlace" id="nav-EstadoPedidos-tab" data-bs-toggle="tab" data-bs-target="#nav-EstadoPedidos" type="button" role="tab">Estado pedidos</button>
-        <button class="nav-link enlace" id="nav-BalanceCaja-tab" data-bs-toggle="tab" data-bs-target="#nav-BalanceCaja" type="button" role="tab">Balance caja</button>
+        <button class="nav-link active enlace"
+                id="nav-NuevoPedido-tab"
+                data-url="{% url 'tab_nuevo_pedido' %}"
+                data-bs-toggle="tab"
+                data-bs-target="#nav-NuevoPedido"
+                type="button" role="tab">
+            Nuevo pedido
+        </button>
+        <button class="nav-link enlace"
+                id="nav-DetallePedido-tab"
+                data-url="{% url 'tab_detalle_pedido' %}"
+                data-bs-toggle="tab"
+                data-bs-target="#nav-DetallePedido"
+                type="button" role="tab">
+            Consultar ventas
+        </button>
+        <button class="nav-link enlace"
+                id="nav-EstadoPedidos-tab"
+                data-url="{% url 'tab_estado_pedidos' %}"
+                data-bs-toggle="tab"
+                data-bs-target="#nav-EstadoPedidos"
+                type="button" role="tab">
+            Estado pedidos
+        </button>
     </div>
 </nav>
 {% endblock %}
@@ -15,157 +35,119 @@
 {% block titulo_principal %}Caja{% endblock %}
 
 {% block contenido %}
+{% for message in messages %}
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-danger alert-dismissible-auto">{{ message }}</div>
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success alert-dismissible-auto">{{ message }}</div>
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+        <div class="alert alert-warning alert-dismissible-auto">{{ message }}</div>
+    {% endif %}
+{% endfor %}
+
 <div class="tab-content container mb-3" id="nav-tabContent">
-
-<!-- NUEVO PEDIDO -->
-<div class="tab-pane fade show active" id="nav-NuevoPedido" role="tabpanel">
-    <section class="container mt-3">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card p-4">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-info">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                    <h5 class="mb-3">Registrar nuevo pedido</h5>
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ pedido_form.as_p }}
-                        <h6>Agregar platos</h6>
-                        {{ formset.management_form }}
-                        <div id="formset-container">
-                            {% for form in formset %}
-                                <div class="card p-2 mb-2">{{ form.as_p }}</div>
-                            {% endfor %}
-                        </div>
-                        <button type="button" class="btn btn-secondary w-100 mt-2" id="agregarPlatoBtn">Agregar otro plato</button>
-                        <div class="d-flex justify-content-end mt-2">
-                            <h6 id="totalPedido" class="text-end">Total del pedido: $0</h6>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100 mt-2">Guardar Pedido</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="tab-pane fade show active" id="nav-NuevoPedido" role="tabpanel"></div>
+    <div class="tab-pane fade" id="nav-DetallePedido" role="tabpanel"></div>
+    <div class="tab-pane fade" id="nav-EstadoPedidos" role="tabpanel"></div>
+    <div class="tab-pane fade" id="nav-BalanceCaja" role="tabpanel"></div>
 </div>
+{% endblock %}
 
-<!-- CONSULTAR PEDIDO -->
-<div class="tab-pane fade" id="nav-DetallePedido" role="tabpanel">
-    <section class="container mt-3">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card p-4">
-                    <h5 class="mb-3">Consultar pedidos</h5>
-                    <form method="get" class="row g-2 mb-3">
-                        <div class="col-auto">
-                            <input type="date" class="form-control" name="fecha" value="{{ request.GET.fecha }}">
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary">Buscar</button>
-                        </div>
-                    </form>
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-center">ID</th>
-                                <th class="text-center">Fecha</th>
-                                <th class="text-center">Cajero</th>
-                                <th class="text-center">Estado</th>
-                                <th class="text-center">Total</th>
-                                <th class="text-center">Detalle</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for pedido in pedidos %}
-                            <tr>
-                                <td class="text-center">{{ pedido.id }}</td>
-                                <td class="text-center">{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                                <td class="text-center">{{ pedido.cajero.username }}</td>
-                                <td class="text-center">{{ pedido.estado }}</td>
-                                <td class="text-center">${{ pedido.total|floatformat:0 }}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#pedidoDetalle{{ pedido.id }}">Ver</button>
-                                </td>
-                            </tr>
-                            <div class="modal fade" id="pedidoDetalle{{ pedido.id }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered modal-lg">
-                                    <div class="modal-content p-3">
-                                        <h5>Detalle del pedido #{{ pedido.id }}</h5>
-                                        <ul class="list-group">
-                                            {% for plato in pedido.platos.all %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                {{ plato.plato.nombre }} - {{ plato.cantidad }} und.
-                                                <span>${{ plato.subtotal|floatformat:0 }}</span>
-                                                <span><small>Nota: {{ plato.nota }}</small></span>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <tr><td colspan="6" class="text-center">No hay pedidos registrados.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-
-<!-- ESTADO PEDIDOS Y BALANCE CAJA PLACEHOLDERS -->
-<div class="tab-pane fade" id="nav-EstadoPedidos" role="tabpanel"></div>
-<div class="tab-pane fade" id="nav-BalanceCaja" role="tabpanel"></div>
+{% block scripts %}
+{{ block.super }}
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    function actualizarTotal() {
-        let total = 0;
-        document.querySelectorAll("#formset-container .card").forEach(function(card) {
-            const platoSelect = card.querySelector("select");
-            const cantidadInput = card.querySelector("input[name$='cantidad']");
-            if (platoSelect && cantidadInput) {
-                const selectedOption = platoSelect.options[platoSelect.selectedIndex];
-                const precioTexto = selectedOption.text.match(/\$(\d+[\d,.]*)/);
-                if (precioTexto) {
-                    let precio = parseFloat(precioTexto[1].replace(',', '.'));
-                    let cantidad = parseInt(cantidadInput.value) || 0;
-                    total += precio * cantidad;
-                }
-            }
-        });
-        document.getElementById("totalPedido").textContent = "Total del pedido: $" + total.toLocaleString('es-CO');
+document.addEventListener("DOMContentLoaded", function () {
+    function loadTabContent(button) {
+        const url = button.getAttribute("data-url");
+        const target = button.getAttribute("data-bs-target");
+
+        // Tomar los parámetros de la URL actual (fecha, hora_inicio, hora_fin)
+        const searchParams = new URLSearchParams(window.location.search);
+        const fullUrl = url + "?" + searchParams.toString();
+
+        if (url && target) {
+            fetch(fullUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Error al cargar la pestaña");
+                    return response.text();
+                })
+                .then(html => {
+                    document.querySelector(target).innerHTML = html;
+
+                    // Activar lógica de "Nuevo Pedido" si es esa pestaña
+                    if (target === '#nav-NuevoPedido') {
+                        activarFormularioNuevoPedido();
+                    }
+                })
+                .catch(error => {
+                    document.querySelector(target).innerHTML = '<div class="alert alert-danger">Error al cargar contenido.</div>';
+                    console.error(error);
+                });
+        }
     }
-    document.getElementById("agregarPlatoBtn").addEventListener("click", function() {
-        const container = document.getElementById("formset-container");
-        const totalForms = document.getElementById("id_form-TOTAL_FORMS");
-        const currentFormCount = parseInt(totalForms.value);
-        const newForm = container.children[0].cloneNode(true);
-        newForm.querySelectorAll('input, select, textarea').forEach(function(input) {
-            if (input.name) {
-                input.name = input.name.replace(/form-\d+/, `form-${currentFormCount}`);
-                input.id = input.id.replace(/form-\d+/, `form-${currentFormCount}`);
-            }
-            if (input.type !== 'hidden') {
-                if (input.tagName === 'SELECT') {
-                    input.selectedIndex = 0;
-                } else {
-                    input.value = '';
-                }
-            }
+
+    // Activar al cargar por defecto
+    const abrirTab = "{{ abrir_tab|default:'' }}";
+    const tabButton = abrirTab
+        ? document.querySelector(`#nav-tab .nav-link[data-bs-target="#nav-${abrirTab|capfirst}"]`)
+        : document.querySelector("#nav-tab .nav-link.active");
+
+    if (tabButton) {
+        tabButton.classList.add("active");
+        document.querySelector(tabButton.getAttribute("data-bs-target")).classList.add("show", "active");
+        loadTabContent(tabButton);
+    }
+
+    // Cargar pestañas al hacer clic
+    document.querySelectorAll('#nav-tab .nav-link').forEach(button => {
+        button.addEventListener("click", function () {
+            loadTabContent(this);
         });
-        totalForms.value = currentFormCount + 1;
-        container.appendChild(newForm);
-        actualizarTotal();
     });
-    actualizarTotal();
-    document.getElementById("formset-container").addEventListener("input", actualizarTotal);
-    document.getElementById("formset-container").addEventListener("change", actualizarTotal);
+
+    // Función para activar formulario de nuevo pedido
+    function activarFormularioNuevoPedido() {
+        const addButton = document.getElementById('add-form');
+        if (!addButton) return;
+
+        const formTable = document.querySelector('#formset-table tbody');
+        const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+        const emptyFormHtml = document.getElementById('empty-form-template').innerHTML;
+        const totalPedidoSpan = document.getElementById('total-pedido');
+        const precioMap = JSON.parse(document.getElementById('platos-json').textContent);
+
+        function recalcularTotales() {
+            let total = 0;
+            document.querySelectorAll('.form-row').forEach(function (row) {
+                const inputNombre = row.querySelector('.plato-input');
+                const inputCantidad = row.querySelector('.cantidad-input');
+                const spanSubtotal = row.querySelector('.subtotal');
+
+                const nombre = inputNombre?.value || '';
+                const cantidad = parseInt(inputCantidad?.value) || 0;
+                const precio = parseFloat(precioMap[nombre]) || 0;
+
+                const subtotal = precio * cantidad;
+                spanSubtotal.textContent = subtotal.toFixed(2);
+                total += subtotal;
+            });
+            totalPedidoSpan.textContent = total.toFixed(2);
+        }
+
+        addButton.addEventListener('click', function () {
+            const formIndex = parseInt(totalForms.value);
+            const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIndex);
+            const tempDiv = document.createElement('tbody');
+            tempDiv.innerHTML = newFormHtml;
+            formTable.appendChild(tempDiv.firstElementChild);
+            totalForms.value = formIndex + 1;
+            recalcularTotales();
+        });
+
+        formTable.addEventListener('input', recalcularTotales);
+        recalcularTotales();
+    }
 });
 </script>
-
-</div>
 {% endblock %}

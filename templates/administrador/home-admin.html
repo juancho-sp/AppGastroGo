@@ -7,7 +7,11 @@
     <div class="nav nav-tabs" id="nav-tab" role="tablist">
         <button class="nav-link active enlace" id="nav-NuevoUsuario-tab" data-bs-toggle="tab" data-bs-target="#nav-NuevoUsuario" type="button" role="tab" aria-controls="nav-NuevoUsuario" aria-selected="false">Crear Usuario</button>
         <button class="nav-link enlace" id="nav-EditarUsuario-tab" data-bs-toggle="tab" data-bs-target="#nav-EditarUsuario" type="button" role="tab" aria-controls="nav-EditarUsuario" aria-selected="false">Editar Usuario</button>
-        <button class="nav-link enlace" id="nav-DetallePedido-tab" data-bs-toggle="tab" data-bs-target="#nav-DetallePedido" type="button" role="tab" aria-controls="nav-DetallePedido" aria-selected="true">Consultar pedido</button>
+        <button class="nav-link enlace" id="nav-EditarPedido-tab"
+            data-bs-toggle="tab" data-bs-target="#nav-EditarPedido"
+            type="button" role="tab" aria-controls="nav-EditarPedido" aria-selected="false">
+            Detalle pedido
+        </button>
         <button class="nav-link enlace" id="nav-CrearPLato-tab" data-bs-toggle="tab" data-bs-target="#nav-CrearPLato" type="button" role="tab" aria-controls="nav-CrearPLato" aria-selected="false">Crear Plato</button>
     </div>
 </nav>
@@ -17,23 +21,23 @@
 
 {% block contenido %}
 <div class="tab-content container mb-2" id="nav-tabContent">
-
-{% for message in messages %}
-    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-        <div class="alert alert-danger alert-dismissible-auto">{{ message }}</div>
-    {% else %}
-        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-            <div class="alert alert-success alert-dismissible-auto">{{ message }}</div>
+{% load humanize %}
+    {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger alert-dismissible-auto">{{ message }}</div>
         {% else %}
-            {% if message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-                <div class="alert alert-warning alert-dismissible-auto">{{ message }}</div>
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                <div class="alert alert-success alert-dismissible-auto">{{ message }}</div>
+            {% else %}
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+                    <div class="alert alert-warning alert-dismissible-auto">{{ message }}</div>
+                {% endif %}
             {% endif %}
         {% endif %}
-    {% endif %}
-{% endfor %}
+    {% endfor %}
 
-<!--Tab para nuevo usuario-->
-<div class="tab-pane fade show active" id="nav-NuevoUsuario" role="tabpanel" aria-labelledby="nav-NuevoUsuario-tab">
+    <!--Tab para nuevo usuario-->
+    <div class="tab-pane fade show active" id="nav-NuevoUsuario" role="tabpanel" aria-labelledby="nav-NuevoUsuario-tab">
     <section class="container mb-3">
         <div class="row justify-content-center">
             <div class="col w-auto">
@@ -85,11 +89,10 @@
             </div>
         </div>
     </section>               
-</div>
+    </div>
 
-
-<!--Tab para editar usuario-->
-<div class="tab-pane fade" id="nav-EditarUsuario" role="tabpanel" aria-labelledby="nav-EditarUsuario-tab">
+    <!--Tab para editar usuario-->
+    <div class="tab-pane fade" id="nav-EditarUsuario" role="tabpanel" aria-labelledby="nav-EditarUsuario-tab">
     <section class="container bg-white rounded mb-3">
         <div class="table-responsive">
             <table class="table table-hover">
@@ -214,70 +217,58 @@
         </form>
         </div>
     </div>
-</div>
+    </div>
 
-
-<!--Tab para consultar pedido-->
-<div class="tab-pane fade" id="nav-DetallePedido" role="tabpanel" aria-labelledby="nav-DetallePedido-tab">
-    <section class="container bg-white rounded mb-3">
-        <div class="row justify-content-center">
-            <div class="col w-auto">
-                    <div class="table-responsive">
-                    <!-- Buscador-->
-                        <form class="d-flex">
-                            <div class="col m-2">
-                                <label for="fecha-pedido" class="align-content-center">Fecha del pedido</label>
-                                <input type="date" id="fecha-pedido" class="form-control align-content-center">
-                            </div>
-                            <div class="col m-2">
-                                <label for="horaInicial-pedido" class="align-content-center">Hora inicial</label>
-                                <input type="time" id="horaInicial-pedido" class="form-control align-content-center" >
-                            </div>
-                            <div class="col m-2"> 
-                                <label for="horaFinal-pedido" class="align-content-center">Hora final</label>
-                                <input type="time" id="horaFinal-pedido" class="form-control align-content-center">
-                            </div>
-                            <div class="col m-2 align-content-end">
-                                <button class="btn btn-primary" >Buscar</button>
-                            </div>
+    <!--Tab para editar pedido-->
+    <div class="tab-pane fade" id="nav-EditarPedido" role="tabpanel" aria-labelledby="nav-EditarPedido-tab">        
+        <section class="container mb-3">
+            <div class="row justify-content-center">
+                <div class="col w-auto">
+                    <div class="card p-4">
+                        <h4>Buscar Pedido por ID</h4>
+                        <form method="get" action="{% url 'editar_pedido_admin' %}">
+                            <label for="pedido_id">Buscar Pedido por ID:</label>
+                            <input type="number" name="pedido_id" id="pedido_id" required>
+                            <button type="submit" class="btn btn-primary">Buscar</button>
                         </form>
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">Id Pedido</th>
-                                    <th class="text-center">Contenido</th>
-                                    <th class="text-center">Fecha</th>
-                                    <th class="text-center">Cajero</th>
-                                    <th class="text-center">Valor total</th>
-                                    <th class="text-center">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="text-center">AA001</td>
-                                    <td class="text-center">2 Menú Día Res + 1 Menú Día Cerdo + Porción chicharrón</td>
-                                    <td class="text-center">05/12/2024</td>
-                                    <td class="text-center">Francisco Ruiz</td>
-                                    <td class="text-center">$40.000</td>
-                                    <td><button class="btn btn-danger" data-bs-toggle="modal">Elminar</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    
+                        {% if pedido %}
+                            <h3>Pedido #{{ pedido.id }}</h3>
+                            <h5>Usuario: {{ pedido.usuario.first_name }} {{ pedido.usuario.last_name }}</h5>
+                            <h5>Estado: {{ pedido.estado }}</h5>
+                            <h4>Total: ${{ pedido.total|floatformat:0|intcomma }}</h4>
+                    
+                            {% if detalles %}
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Plato</th>
+                                            <th>Cantidad</th>
+                                            <th>Nota</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detalle in detalles %}
+                                            <tr>
+                                                <td>{{ detalle.plato.nombre }}</td>
+                                                <td>{{ detalle.cantidad }}</td>
+                                                <td>{{ detalle.nota }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>No hay platos en este pedido.</p>
+                            {% endif %}
+                        {% endif %}
                     </div>
-                    <!-- Botones -->
-                    <div class="text-center">
-                        <div class="d-flex justify-content-center">
-                            <button class="btn btn-warning m-2 w-25">Editar Pedido</button>
-                            <button class="btn btn-success border-light m-2 w-25">Entregar Pedido</button>
-                        </div>
-                    </div>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 
-<!--Tab para crear plato-->
-<div class="tab-pane fade" id="nav-CrearPLato" role="tabpanel" aria-labelledby="nav-CrearPLato-tab">
+    <!--Tab para crear plato-->
+    <div class="tab-pane fade" id="nav-CrearPLato" role="tabpanel" aria-labelledby="nav-CrearPLato-tab">
     <section class="container mb-3">
         <div class="row justify-content-center">
             <div class="col w-auto">
@@ -312,5 +303,57 @@
                 </div>
             </div>
     </section>
+    </div>
+
 </div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('birthDate').value = today;
+    });
+</script>
+
+<script>
+    // Mayúsculas al escribir
+    document.getElementById('nombre-plato').addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Obtener precio automáticamente
+    document.getElementById('nombre-plato').addEventListener('change', function () {
+        const nombre = this.value;
+        fetch(`/menu/platos/precio/?nombre=${encodeURIComponent(nombre)}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('precio-plato').value = data.precio || '';
+            });
+    });
+
+    // Enviar formulario según acción
+    function enviarFormulario(accion) {
+        document.getElementById('accion-plato').value = accion;
+        document.querySelector('#nav-CrearPLato form').submit();
+    }
+
+    // Confirmar antes de eliminar
+    function confirmarEliminar() {
+        const confirmacion = confirm("¿Estás seguro de que deseas eliminar este plato?");
+        if (confirmacion) {
+            enviarFormulario('eliminar');
+        }
+    }
+</script>
+
+<script>
+    const pedidoId = "{{ pedido_id|default:'' }}";
+    if (pedidoId) {
+        const tab = new bootstrap.Tab(document.querySelector('#nav-EditarPedido-tab'));
+        tab.show();
+    }
+</script>
+
+
 {% endblock %}
+
+

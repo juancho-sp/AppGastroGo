@@ -1,77 +1,188 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.forms import modelformset_factory
-from django.contrib import messages
 from django.utils import timezone
-from datetime import datetime
-
-from .forms import PedidoForm, PedidoPlatoForm
-from .models import Pedido, PedidoPlato
+from django.shortcuts import render, get_object_or_404, redirect
+from django.forms import formset_factory
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import PlatoTextoForm
+from .models import Pedido, DetallePedido
+from menu.models import Plato
+from django.utils.dateparse import parse_date
+from datetime import datetime, time, timezone as dt_timezone
+from django.utils.timezone import make_aware, get_current_timezone
+from django.urls import reverse
+from users.models import Perfil
+from django.db.models import Sum
 
 @login_required
-def nuevoPedido(request):
-    PedidoPlatoFormSet = modelformset_factory(
-        PedidoPlato,
-        form=PedidoPlatoForm,
-        extra=1,
-        can_delete=True
-    )
+def crear_pedido(request):
+    return render(request, 'cajero/home-cajero.html')
 
-    if request.method == 'POST' and 'buscar' not in request.POST:
-        pedido_form = PedidoForm(request.POST)
-        formset = PedidoPlatoFormSet(request.POST, queryset=PedidoPlato.objects.none())
 
-        if pedido_form.is_valid() and formset.is_valid():
-            pedido = pedido_form.save(commit=False)
-            pedido.cajero = request.user
-            pedido.estado = 'pendiente'
-            pedido.save()
+@login_required
+def tab_nuevo_pedido(request):
+    PlatoFormSet = formset_factory(PlatoTextoForm, extra=1)
+    platos = Plato.objects.all()
 
-            total = 0
+    if request.method == 'POST':
+        formset = PlatoFormSet(request.POST)
+        turno = request.POST.get('turno')
+
+        if not turno or not turno.isdigit():
+            messages.warning(request, "Debes ingresar un número de turno válido.")
+            return redirect('crear_pedido')
+
+        turno = int(turno)
+
+        if Pedido.objects.filter(turno=turno, estado='pendiente').exists():
+            messages.warning(request, f"Ya existe un pedido pendiente con el turno {turno}.")
+            return redirect('crear_pedido')
+
+        if formset.is_valid():
+            # Validar que todos los platos existan ANTES de crear el pedido
+            nombres_invalidos = []
             for form in formset:
-                if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                    plato = form.cleaned_data['plato']
-                    cantidad = form.cleaned_data['cantidad']
-                    nota = form.cleaned_data.get('nota', '')
-                    subtotal = plato.precio * cantidad
+                nombre = form.cleaned_data.get('nombre_plato')
+                if nombre and not Plato.objects.filter(nombre=nombre).exists():
+                    nombres_invalidos.append(nombre)
 
-                    PedidoPlato.objects.create(
-                        pedido=pedido,
-                        plato=plato,
-                        cantidad=cantidad,
-                        nota=nota,
-                        subtotal=subtotal
-                    )
+            if nombres_invalidos:
+                for nombre in nombres_invalidos:
+                    messages.warning(request, f"El plato '{nombre}' no existe.")
+                return redirect('crear_pedido')  # No crear pedido si hay errores
 
-                    total += subtotal
+            # Crear el pedido porque todos los nombres son válidos
+            pedido = Pedido.objects.create(
+                turno=turno,
+                usuario=request.user,
+                estado='pendiente',
+                total=0
+            )
 
-            pedido.total = total
+            total_pedido = 0
+
+            for form in formset:
+                nombre = form.cleaned_data.get('nombre_plato')
+                cantidad = form.cleaned_data.get('cantidad')
+                nota = form.cleaned_data.get('nota_plato')
+
+                plato = Plato.objects.get(nombre=nombre)
+                subtotal = plato.precio * cantidad
+                total_pedido += subtotal
+
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    plato=plato,
+                    cantidad=cantidad,
+                    nota=nota
+                )
+
+            pedido.total = total_pedido
             pedido.save()
 
-            messages.success(request, '✅ Pedido registrado correctamente.')
-            return redirect('nuevoPedido')
+            messages.success(request, f"Pedido #{pedido.id} creado exitosamente.")
+            return redirect('crear_pedido')
+
+        else:
+            messages.warning(request, "Hay errores en el formulario.")
+            return redirect('crear_pedido')
+
     else:
-        pedido_form = PedidoForm()
-        formset = PedidoPlatoFormSet(queryset=PedidoPlato.objects.none())
+        formset = PlatoFormSet()
 
-    pedidos = Pedido.objects.filter(cajero=request.user).order_by('-fecha_creacion')[:10]
+    turnos_pendientes = Pedido.objects.filter(estado='pendiente').order_by('turno').values_list('turno', flat=True)
 
-    fecha_filtrar = request.GET.get('fecha')
-    if fecha_filtrar:
-        fecha_inicio = datetime.strptime(fecha_filtrar, '%Y-%m-%d')
-        fecha_fin = fecha_inicio.replace(hour=23, minute=59, second=59)
-        pedidos = Pedido.objects.filter(
-            cajero=request.user,
-            fecha_creacion__range=(fecha_inicio, fecha_fin)
-        ).order_by('-fecha_creacion')
-
-    return render(request, 'cajero/home-cajero.html', {
-        'pedido_form': pedido_form,
+    return render(request, 'cajero/tabs/nuevo_pedido.html', {
         'formset': formset,
-        'pedidos': pedidos
+        'platos': platos,
+        'platos_json': {p.nombre: float(p.precio) for p in platos},
+        'turnos_pendientes': turnos_pendientes,
     })
 
 @login_required
-def pedidosPendientes(request):
-    pedidos = Pedido.objects.filter(estado='pendiente').order_by('-fecha_creacion')
-    return render(request, 'cocinero/home-cocinero.html', {'pedidos': pedidos})
+def tab_detalle_pedido(request):
+    if not request.GET.get('fecha'):
+        today = timezone.localdate()
+        return redirect(f"{reverse('tab_detalle_pedido')}?fecha={today}")
+
+    fecha_str = request.GET.get('fecha')
+    hora_inicio_str = request.GET.get('hora_inicio')
+    hora_fin_str = request.GET.get('hora_fin')
+
+    pedidos = []
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+
+        if hora_inicio_str and hora_fin_str:
+            hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
+            hora_fin = datetime.strptime(hora_fin_str, '%H:%M').time()
+
+            dt_inicio_naive = datetime.combine(fecha, hora_inicio)
+            dt_fin_naive = datetime.combine(fecha, hora_fin)
+
+            tz = timezone.get_current_timezone()
+            datetime_inicio = timezone.make_aware(dt_inicio_naive, timezone=tz)
+            datetime_fin = timezone.make_aware(dt_fin_naive, timezone=tz)
+
+            print("Inicio UTC:", datetime_inicio)
+            print("Fin UTC:", datetime_fin)
+
+            pedidos = Pedido.objects.filter(
+                fecha_creacion__range=(datetime_inicio, datetime_fin)
+            ).order_by('-fecha_creacion')
+
+            for p in pedidos:
+                print("Pedido:", p.id, timezone.localtime(p.fecha_creacion))
+        else:
+            print("⏱ No se especificó rango de hora. No se filtrarán pedidos.")
+    except Exception as e:
+        print("❌ Error al filtrar pedidos:", e)
+        pedidos = []
+
+    # ➕ Total de ventas
+    total_ventas = sum(p.total for p in pedidos)
+
+    context = {
+        'pedidos': pedidos,
+        'fecha': fecha_str,
+        'hora_inicio': hora_inicio_str,
+        'hora_fin': hora_fin_str,
+        'ahora': timezone.localtime(),
+        'total_ventas': total_ventas,  #  se pasa al template
+    }
+
+    return render(request, 'cajero/tabs/detalle_pedido.html', context)
+
+@login_required
+def tab_estado_pedidos(request):
+    return render(request, 'cajero/tabs/estado_pedidos.html')
+
+
+def es_admin(user):
+    return hasattr(user, 'perfil') and user.perfil.rol == 'admin'
+
+@login_required
+@user_passes_test(es_admin)
+def editar_pedido_admin(request):
+    pedido = None
+    detalles = []
+
+    if request.method == 'GET':
+        pedido_id = request.GET.get('pedido_id')
+
+        if pedido_id:
+            try:
+                pedido = Pedido.objects.get(id=pedido_id)
+                detalles = pedido.detalles.all()  
+            except Pedido.DoesNotExist:
+                pedido = None
+                detalles = []
+                
+
+    context = {
+        'pedido': pedido,
+        'detalles': detalles,
+        'platos': Plato.objects.all(),
+        'perfiles': Perfil.objects.all(), 
+    }
+    return render(request, 'administrador/home-admin.html', context)

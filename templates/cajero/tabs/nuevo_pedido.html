@@ -1,0 +1,125 @@
+<section class="container mb-3">
+    {% load humanize %}
+    <div class="row justify-content-center">
+        <div class="col w-auto">
+            <div class="card p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'tab_nuevo_pedido' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form-TOTAL_FORMS" value="{{ formset.total_form_count }}" id="id_form-TOTAL_FORMS">
+                    <input type="hidden" name="form-INITIAL_FORMS" value="{{ formset.initial_form_count }}" id="id_form-INITIAL_FORMS">
+                    <input type="hidden" name="form-MIN_NUM_FORMS" value="0" id="id_form-MIN_NUM_FORMS">
+                    <input type="hidden" name="form-MAX_NUM_FORMS" value="1000" id="id_form-MAX_NUM_FORMS">
+
+                    <div class="mb-3">
+                        <label for="turno" class="form-label"><strong>Turno:</strong></label>
+                        <input type="number" name="turno" id="turno" min="1" class="form-control" required>
+                    </div>
+
+                    <table class="table table-bordered align-middle" id="formset-table">
+                        <thead>
+                            <tr>
+                                <th>Plato</th>
+                                <th>Cantidad</th>
+                                <th>Nota</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for form in formset %}
+                            <tr class="form-row">
+                                <td>{{ form.nombre_plato }}</td>
+                                <td>{{ form.cantidad }}</td>
+                                <td>{{ form.nota_plato }}</td>
+                                <td>$<span class="subtotal">0.00</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <button type="button" id="add-form" class="btn btn-outline-primary btn-sm mb-3">
+                        + Agregar Plato
+                    </button>
+
+                    <div class="mb-3">
+                        <strong>Total del pedido: $<span id="total-pedido">0.0</span></strong>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Guardar Pedido</button>
+                </form>
+
+                <hr class="my-4">
+                <div class="row">
+                    <div class="col-md-6 text-end">
+                        <h6><strong>Turneros en uso:</strong></h6>
+                    </div>
+                    <div class="col-md-6">
+                        {% if turnos_pendientes %}
+                            <ul class="list-inline">
+                                {% for turno in turnos_pendientes %}
+                                    <li class="list-inline-item badge bg-warning text-dark fs-6">{{ turno }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span class="text-muted">No hay turnos pendientes</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <datalist id="lista-platos">
+                    {% for plato in platos %}
+                        <option value="{{ plato.nombre }}"></option>
+                    {% endfor %}
+                </datalist>
+
+                <hr class="my-4">
+                <div class="row">
+                    <div class="col-md-6 text-end">
+                        <h6><strong>Lista de platos:</strong></h6>
+                    </div>
+                    <div class="col">
+                        <ul class="list-inline">
+                            {% for plato in platos %}
+                                <li class="list-group-flush">{{ plato.nombre }} - ${{ plato.precio|floatformat:0|intcomma }}</li>
+                            {% empty %}
+                                <li class="list-inline-item bg-danger text-dark fs-6">No hay platos en la base de datos.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {{ platos_json|json_script:"platos-json" }}
+
+                <template id="empty-form-template">
+                    <tr class="form-row">
+                        <td>
+                            <input type="text" name="form-__prefix__-nombre_plato"
+                                list="lista-platos" autocomplete="off"
+                                class="form-control text-uppercase plato-input"
+                                id="id_form-__prefix__-nombre_plato"
+                                required>
+                        </td>
+                        <td>
+                            <input type="number" name="form-__prefix__-cantidad"
+                                min="1" class="form-control cantidad-input"
+                                id="id_form-__prefix__-cantidad"
+                                required>
+                        </td>
+                        <td>
+                            <textarea name="form-__prefix__-nota_plato"
+                                rows="1" class="form-control"
+                                placeholder="Ej: sin cebolla"
+                                id="id_form-__prefix__-nota_plato"></textarea>
+                        </td>
+                        <td>$<span class="subtotal">0.00</span></td>
+                    </tr>
+                </template>
+
+            </div>
+        </div>
+    </div>
+</section>
