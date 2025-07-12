@@ -1,0 +1,87 @@
+<section class="container mb-3">
+    {% load humanize %}
+    <div class="row justify-content-center">
+        <div class="col w-auto">
+            <div class="card p-4">
+                <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <h4 class="mb-3">Pedidos Pendientes</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Turno</th>
+                            <th>Usuario</th>
+                            <th>Fecha de entrada</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pendientes %}
+                        <tr id="pedido-{{ pedido.id }}">
+                            <td>{{ pedido.id }}</td>
+                            <td>{{ pedido.turno }}</td>
+                            <td>{{ pedido.usuario.username }}</td>
+                            <td>{{ pedido.fecha_creacion|date:"Y-m-d H:i" }}</td>
+                            <td>${{ pedido.total|floatformat:1 }}</td>
+                            <td>
+                                <button class="btn btn-success btn-sm cambiar-estado" data-id="{{ pedido.id }}" data-estado="entregado">Entregar</button>
+                                <button class="btn btn-danger btn-sm cancelar-pedido" data-id="{{ pedido.id }}">Cancelar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6">No hay pedidos pendientes</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <h4 class="mt-5 mb-3">Últimos pedidos finalizados</h4>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Turno</th>
+                            <th>Usuario</th>
+                            <th>Fecha de cierre</th>
+                            <th>Estado</th>
+                            <th>Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-finalizados">
+                        {% include 'cajero/partials/finalizados_table.html' %}
+                    </tbody>
+                </table>
+                
+                <!-- Modal para cancelar -->
+                <div class="modal fade" id="modalCancelar" tabindex="-1" aria-labelledby="modalCancelarLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form id="formCancelar">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Motivo de cancelación</h5>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="pedido_id" id="pedido_id_cancelar">
+                                    <textarea name="nota" id="nota_cancelacion" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn btn-danger">Confirmar Cancelación</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+
+
+            </div>
+        </div>
+    </div>
+</section>
+

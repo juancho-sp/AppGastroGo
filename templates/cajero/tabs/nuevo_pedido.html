@@ -36,7 +36,7 @@
                                 <td>{{ form.nombre_plato }}</td>
                                 <td>{{ form.cantidad }}</td>
                                 <td>{{ form.nota_plato }}</td>
-                                <td>$<span class="subtotal">0.00</span></td>
+                                <td>$<span class="subtotal">0.0</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -47,7 +47,7 @@
                     </button>
 
                     <div class="mb-3">
-                        <strong>Total del pedido: $<span id="total-pedido">0.0</span></strong>
+                        <h4>Total del pedido: <span class="text-success">$ </span><span class="text-success" id="total-pedido">0.0</span></h4>
                     </div>
 
                     <button type="submit" class="btn btn-success">Guardar Pedido</button>
@@ -122,4 +122,6 @@
             </div>
         </div>
     </div>
+
+</script>
 </section>

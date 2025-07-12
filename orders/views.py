@@ -12,6 +12,10 @@ from django.utils.timezone import make_aware, get_current_timezone
 from django.urls import reverse
 from users.models import Perfil
 from django.db.models import Sum
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
 
 @login_required
 def crear_pedido(request):
@@ -155,8 +159,44 @@ def tab_detalle_pedido(request):
 
 @login_required
 def tab_estado_pedidos(request):
-    return render(request, 'cajero/tabs/estado_pedidos.html')
+    pendientes = Pedido.objects.filter(estado='pendiente').order_by('-fecha_creacion')
+    finalizados = Pedido.objects.filter(estado__in=['entregado', 'cancelado']) \
+        .order_by('-fecha_actualizacion_estado')[:5]
 
+    return render(request, 'cajero/tabs/estado_pedidos.html', {
+        'pendientes': pendientes,
+        'finalizados': finalizados
+    })
+
+
+@require_POST
+def cambiar_estado_pedido(request):
+    pedido_id = request.POST.get('pedido_id')
+    nuevo_estado = request.POST.get('nuevo_estado')
+    nota = request.POST.get('nota', '')
+
+    if not pedido_id or not nuevo_estado:
+        return JsonResponse({'success': False, 'error': 'Datos incompletos'})
+
+    try:
+        pedido = Pedido.objects.get(id=pedido_id)
+        pedido.estado = nuevo_estado
+        pedido.fecha_actualizacion_estado = timezone.now()  # actualizar fecha
+        if nuevo_estado == 'cancelado':
+            pedido.nota_cancelacion = nota
+        pedido.save()
+
+        finalizados = Pedido.objects.filter(estado__in=['entregado', 'cancelado']) \
+            .order_by('-fecha_actualizacion_estado')[:5]
+
+        finalizados_html = render_to_string('cajero/partials/finalizados_table.html', {
+            'finalizados': finalizados
+        })
+
+        return JsonResponse({'success': True, 'finalizados_html': finalizados_html})
+
+    except Pedido.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})
 
 def es_admin(user):
     return hasattr(user, 'perfil') and user.perfil.rol == 'admin'
@@ -175,6 +215,7 @@ def editar_pedido_admin(request):
                 pedido = Pedido.objects.get(id=pedido_id)
                 detalles = pedido.detalles.all()  
             except Pedido.DoesNotExist:
+                messages.warning(request, f"El pedido con ID {pedido_id} no existe.")
                 pedido = None
                 detalles = []
                 

@@ -79,6 +79,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (target === '#nav-NuevoPedido') {
                         activarFormularioNuevoPedido();
                     }
+
+                    if (target === '#nav-EstadoPedidos') {
+                        activarBotonesEstadoPedidos();
+                    }
                 })
                 .catch(error => {
                     document.querySelector(target).innerHTML = '<div class="alert alert-danger">Error al cargar contenido.</div>';
@@ -115,6 +119,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const totalForms = document.getElementById('id_form-TOTAL_FORMS');
         const emptyFormHtml = document.getElementById('empty-form-template').innerHTML;
         const totalPedidoSpan = document.getElementById('total-pedido');
+
+        
         const precioMap = JSON.parse(document.getElementById('platos-json').textContent);
 
         function recalcularTotales() {
@@ -129,10 +135,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 const precio = parseFloat(precioMap[nombre]) || 0;
 
                 const subtotal = precio * cantidad;
-                spanSubtotal.textContent = subtotal.toFixed(2);
+                spanSubtotal.textContent = subtotal.toLocaleString('en-US', {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                });
                 total += subtotal;
             });
-            totalPedidoSpan.textContent = total.toFixed(2);
+            totalPedidoSpan.textContent = total.toLocaleString('en-US', {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            });
         }
 
         addButton.addEventListener('click', function () {
@@ -150,4 +162,132 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+
+<script>
+// Esta función se llama después de cargar la pestaña "Estado pedidos"
+function asignarEventosBotones() {
+    console.log("🎯 Asignando eventos a botones...");
+
+    // Botón ENTREGAR
+    document.querySelectorAll(".cambiar-estado").forEach(btn => {
+        btn.addEventListener("click", function () {
+            console.log("✅ Click en botón ENTREGAR");
+            const id = this.dataset.id;
+            const estado = this.dataset.estado;
+
+            if (!confirm("¿Estás seguro de marcar este pedido como ENTREGADO?")) {
+                return;
+            }
+
+            fetch("{% url 'cambiar_estado_pedido' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `pedido_id=${id}&nuevo_estado=${estado}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Eliminar pedido de la tabla de pendientes
+                    document.getElementById(`pedido-${id}`).remove();
+                    // Reemplazar lista de finalizados
+                    document.getElementById("tabla-finalizados").innerHTML = data.finalizados_html;
+                    // Reasignar eventos a los nuevos botones
+                    asignarEventosBotones();
+                } else {
+                    alert("Error al cambiar estado");
+                }
+            });
+        });
+    });
+
+    // Botón CANCELAR (abre modal)
+    document.querySelectorAll(".cancelar-pedido").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            document.getElementById("pedido_id_cancelar").value = id;
+            const modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
+            modal.show();
+        });
+    });
+
+    // Submit del formulario del modal (evita múltiples registros)
+    const formCancelar = document.getElementById("formCancelar");
+    if (formCancelar && !formCancelar.dataset.eventoAgregado) {
+        formCancelar.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const id = document.getElementById("pedido_id_cancelar").value;
+            const nota = document.getElementById("nota_cancelacion").value;
+
+            fetch("{% url 'cambiar_estado_pedido' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `pedido_id=${id}&nuevo_estado=cancelado&nota=${encodeURIComponent(nota)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`pedido-${id}`).remove();
+                    bootstrap.Modal.getInstance(document.getElementById('modalCancelar')).hide();
+                    document.getElementById("tabla-finalizados").innerHTML = data.finalizados_html;
+                    asignarEventosBotones();
+                } else {
+                    alert("Error al cancelar");
+                }
+            });
+        });
+        formCancelar.dataset.eventoAgregado = "true";  // evita agregarlo dos veces
+    }
+}
+</script>
+
+<script>
+// Lógica para cargar pestañas con fetch
+document.addEventListener("DOMContentLoaded", function () {
+    function loadTabContent(button) {
+        const url = button.getAttribute("data-url");
+        const target = button.getAttribute("data-bs-target");
+
+        if (url && target) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("Error al cargar la pestaña");
+                    return response.text();
+                })
+                .then(html => {
+                    document.querySelector(target).innerHTML = html;
+
+                    if (target === '#nav-EstadoPedidos') {
+                        // Esperamos un poco a que el contenido se inyecte
+                        setTimeout(asignarEventosBotones, 100);
+                    }
+                })
+                .catch(error => {
+                    document.querySelector(target).innerHTML = '<div class="alert alert-danger">Error al cargar contenido.</div>';
+                    console.error(error);
+                });
+        }
+    }
+
+    // Activar la pestaña inicial
+    const tabButton = document.querySelector("#nav-tab .nav-link.active");
+    if (tabButton) {
+        loadTabContent(tabButton);
+    }
+
+    // Asignar eventos para cambio de pestaña
+    document.querySelectorAll('#nav-tab .nav-link').forEach(button => {
+        button.addEventListener("click", function () {
+            loadTabContent(this);
+        });
+    });
+});
+</script>
+
+
 {% endblock %}

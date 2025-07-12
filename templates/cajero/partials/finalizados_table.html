@@ -1,0 +1,12 @@
+{% for pedido in finalizados %}
+<tr>
+    <td>{{ pedido.id }}</td>
+    <td>{{ pedido.turno }}</td>
+    <td>{{ pedido.usuario.username }}</td>
+    <td>{{ pedido.fecha_actualizacion_estado|date:"Y-m-d H:i" }}</td>
+    <td>{{ pedido.estado }}</td>
+    <td>{{ pedido.nota_cancelacion|default:"-" }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="6">No hay pedidos finalizados</td></tr>
+{% endfor %}

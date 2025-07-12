@@ -14,6 +14,8 @@ class Pedido(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
     total = models.DecimalField(max_digits=15, decimal_places=0, default=0.00)
+    nota_cancelacion = models.TextField(blank=True, null=True)
+    fecha_actualizacion_estado = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Pedido #{self.id} - Turno {self.turno}"
