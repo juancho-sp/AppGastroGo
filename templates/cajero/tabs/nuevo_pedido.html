@@ -1,5 +1,6 @@
 <section class="container mb-3">
     {% load humanize %}
+    {{ platos_json|json_script:"platos-json" }}
     <div class="row justify-content-center">
         <div class="col w-auto">
             <div class="card p-4">
@@ -92,7 +93,7 @@
                         </ul>
                     </div>
                 </div>
-                {{ platos_json|json_script:"platos-json" }}
+                
 
                 <template id="empty-form-template">
                     <tr class="form-row">
@@ -123,5 +124,5 @@
         </div>
     </div>
 
-</script>
+
 </section>

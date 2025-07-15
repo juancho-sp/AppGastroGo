@@ -138,9 +138,9 @@ def tab_detalle_pedido(request):
             for p in pedidos:
                 print("Pedido:", p.id, timezone.localtime(p.fecha_creacion))
         else:
-            print("⏱ No se especificó rango de hora. No se filtrarán pedidos.")
+            print("No se especificó rango de hora. No se filtrarán pedidos.")
     except Exception as e:
-        print("❌ Error al filtrar pedidos:", e)
+        print("Error al filtrar pedidos:", e)
         pedidos = []
 
     # ➕ Total de ventas
@@ -202,7 +202,6 @@ def es_admin(user):
     return hasattr(user, 'perfil') and user.perfil.rol == 'admin'
 
 @login_required
-@user_passes_test(es_admin)
 def editar_pedido_admin(request):
     pedido = None
     detalles = []

@@ -7,6 +7,7 @@ class Pedido(models.Model):
         ('pendiente', 'Pendiente'),
         ('entregado', 'Entregado'),
         ('cancelado', 'Cancelado'),
+        ('preparado', 'Preparado'),
     ]
 
     turno = models.IntegerField(unique=False)

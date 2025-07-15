@@ -64,7 +64,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Tomar los parámetros de la URL actual (fecha, hora_inicio, hora_fin)
         const searchParams = new URLSearchParams(window.location.search);
-        const fullUrl = url + "?" + searchParams.toString();
+        const queryString = searchParams.toString();
+        const fullUrl = url + (queryString ? "?" + queryString : "");
 
         if (url && target) {
             fetch(fullUrl)
@@ -77,12 +78,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Activar lógica de "Nuevo Pedido" si es esa pestaña
                     if (target === '#nav-NuevoPedido') {
-                        activarFormularioNuevoPedido();
+                        setTimeout(() => {
+                            activarFormularioNuevoPedido();
+                        }, 50);
                     }
 
                     if (target === '#nav-EstadoPedidos') {
-                        activarBotonesEstadoPedidos();
+                        setTimeout(() => {
+                            try {
+                                asignarEventosBotones();
+                            } catch (e) {
+                                console.error("❌ Error al asignar eventos:", e);
+                            }
+                        }, 50);  // tiempo suficiente para que se inyecte el DOM
                     }
+
                 })
                 .catch(error => {
                     document.querySelector(target).innerHTML = '<div class="alert alert-danger">Error al cargar contenido.</div>';
@@ -109,75 +119,77 @@ document.addEventListener("DOMContentLoaded", function () {
             loadTabContent(this);
         });
     });
-
-    // Función para activar formulario de nuevo pedido
-    function activarFormularioNuevoPedido() {
-        const addButton = document.getElementById('add-form');
-        if (!addButton) return;
-
-        const formTable = document.querySelector('#formset-table tbody');
-        const totalForms = document.getElementById('id_form-TOTAL_FORMS');
-        const emptyFormHtml = document.getElementById('empty-form-template').innerHTML;
-        const totalPedidoSpan = document.getElementById('total-pedido');
-
-        
-        const precioMap = JSON.parse(document.getElementById('platos-json').textContent);
-
-        function recalcularTotales() {
-            let total = 0;
-            document.querySelectorAll('.form-row').forEach(function (row) {
-                const inputNombre = row.querySelector('.plato-input');
-                const inputCantidad = row.querySelector('.cantidad-input');
-                const spanSubtotal = row.querySelector('.subtotal');
-
-                const nombre = inputNombre?.value || '';
-                const cantidad = parseInt(inputCantidad?.value) || 0;
-                const precio = parseFloat(precioMap[nombre]) || 0;
-
-                const subtotal = precio * cantidad;
-                spanSubtotal.textContent = subtotal.toLocaleString('en-US', {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1
-                });
-                total += subtotal;
-            });
-            totalPedidoSpan.textContent = total.toLocaleString('en-US', {
-                minimumFractionDigits: 1,
-                maximumFractionDigits: 1
-            });
-        }
-
-        addButton.addEventListener('click', function () {
-            const formIndex = parseInt(totalForms.value);
-            const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIndex);
-            const tempDiv = document.createElement('tbody');
-            tempDiv.innerHTML = newFormHtml;
-            formTable.appendChild(tempDiv.firstElementChild);
-            totalForms.value = formIndex + 1;
-            recalcularTotales();
-        });
-
-        formTable.addEventListener('input', recalcularTotales);
-        recalcularTotales();
-    }
 });
 </script>
 
 <script>
-// Esta función se llama después de cargar la pestaña "Estado pedidos"
-function asignarEventosBotones() {
-    console.log("🎯 Asignando eventos a botones...");
+// Función para activar formulario de nuevo pedido
+function activarFormularioNuevoPedido() {
+    const addButton = document.getElementById('add-form');
+    if (!addButton) return;    const formTable = document.querySelector('#formset-table tbody');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    const emptyFormHtml = document.getElementById('empty-form-template').innerHTML;
+    const totalPedidoSpan = document.getElementById('total-pedido');    
+    const precioMap = JSON.parse(document.getElementById('platos-json').textContent);    function recalcularTotales() {
+        let total = 0;
+        document.querySelectorAll('.form-row').forEach(function (row) {
+            const inputNombre = row.querySelector('.plato-input');
+            const inputCantidad = row.querySelector('.cantidad-input');
+            const spanSubtotal = row.querySelector('.subtotal');            const nombre = inputNombre?.value || '';
+            const cantidad = parseInt(inputCantidad?.value) || 0;
+            const precio = parseFloat(precioMap[nombre]) || 0;            const subtotal = precio * cantidad;
+            spanSubtotal.textContent = subtotal.toLocaleString('en-US', {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            });
+            total += subtotal;
+        });
+        totalPedidoSpan.textContent = total.toLocaleString('en-US', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        });
+    }   
+    addButton.addEventListener('click', function () {
+        const formIndex = parseInt(totalForms.value);
+        const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIndex);
+        const tempDiv = document.createElement('tbody');
 
-    // Botón ENTREGAR
+        tempDiv.innerHTML = newFormHtml;
+        formTable.appendChild(tempDiv.firstElementChild);
+        totalForms.value = formIndex + 1;
+        recalcularTotales();
+    });
+    formTable.addEventListener('input', recalcularTotales);
+    recalcularTotales();
+}
+</script>
+
+<script>
+function asignarEventosBotones() {
+    console.log("📌 Reasignando eventos a botones...");
+
+    // ENTREGAR usando modal personalizado
     document.querySelectorAll(".cambiar-estado").forEach(btn => {
         btn.addEventListener("click", function () {
-            console.log("✅ Click en botón ENTREGAR");
-            const id = this.dataset.id;
+            const pedidoId = this.dataset.id;
             const estado = this.dataset.estado;
 
-            if (!confirm("¿Estás seguro de marcar este pedido como ENTREGADO?")) {
-                return;
-            }
+            // Guardamos el ID en el modal
+            const confirmarBtn = document.getElementById("btnConfirmarEntrega");
+            confirmarBtn.dataset.id = pedidoId;
+            confirmarBtn.dataset.estado = estado;
+
+            const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmarEntrega'));
+            modalConfirm.show();
+        });
+    });
+
+    // Confirmar entrega desde modal
+    const confirmarBtn = document.getElementById("btnConfirmarEntrega");
+    if (confirmarBtn && !confirmarBtn.dataset.eventoAgregado) {
+        confirmarBtn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const estado = this.dataset.estado;
 
             fetch("{% url 'cambiar_estado_pedido' %}", {
                 method: "POST",
@@ -190,30 +202,28 @@ function asignarEventosBotones() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Eliminar pedido de la tabla de pendientes
                     document.getElementById(`pedido-${id}`).remove();
-                    // Reemplazar lista de finalizados
                     document.getElementById("tabla-finalizados").innerHTML = data.finalizados_html;
-                    // Reasignar eventos a los nuevos botones
+                    bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEntrega')).hide();
                     asignarEventosBotones();
                 } else {
-                    alert("Error al cambiar estado");
+                    alert("Error al entregar");
                 }
             });
         });
-    });
+        confirmarBtn.dataset.eventoAgregado = "true";
+    }
 
-    // Botón CANCELAR (abre modal)
+    // CANCELAR: abrir modal
     document.querySelectorAll(".cancelar-pedido").forEach(btn => {
         btn.addEventListener("click", function () {
-            const id = this.dataset.id;
-            document.getElementById("pedido_id_cancelar").value = id;
+            document.getElementById("pedido_id_cancelar").value = this.dataset.id;
             const modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
             modal.show();
         });
     });
 
-    // Submit del formulario del modal (evita múltiples registros)
+    // CANCELAR: enviar formulario
     const formCancelar = document.getElementById("formCancelar");
     if (formCancelar && !formCancelar.dataset.eventoAgregado) {
         formCancelar.addEventListener("submit", function (e) {
@@ -233,17 +243,29 @@ function asignarEventosBotones() {
             .then(data => {
                 if (data.success) {
                     document.getElementById(`pedido-${id}`).remove();
-                    bootstrap.Modal.getInstance(document.getElementById('modalCancelar')).hide();
                     document.getElementById("tabla-finalizados").innerHTML = data.finalizados_html;
+
+                    const modalEl = document.getElementById('modalCancelar');
+                    bootstrap.Modal.getInstance(modalEl).hide();
                     asignarEventosBotones();
                 } else {
                     alert("Error al cancelar");
                 }
             });
         });
-        formCancelar.dataset.eventoAgregado = "true";  // evita agregarlo dos veces
+        formCancelar.dataset.eventoAgregado = "true";
     }
+
+    // Siempre limpiar backdrop al cerrar cualquier modal
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', () => {
+            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style = '';
+        });
+    });
 }
+
 </script>
 
 <script>
@@ -261,10 +283,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .then(html => {
                     document.querySelector(target).innerHTML = html;
-
                     if (target === '#nav-EstadoPedidos') {
-                        // Esperamos un poco a que el contenido se inyecte
-                        setTimeout(asignarEventosBotones, 100);
+                        setTimeout(() => {
+                            try {
+                                asignarEventosBotones();
+                            } catch (e) {
+                                console.error("❌ Error al asignar eventos:", e);
+                            }
+                        }, 50);  // tiempo suficiente para que se inyecte el DOM
                     }
                 })
                 .catch(error => {
@@ -287,6 +313,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+</script>
+
+<script>
+(function () {
+    if (typeof activarFormularioNuevoPedido === 'function') {
+        activarFormularioNuevoPedido();
+    }
+})();
 </script>
 
 
