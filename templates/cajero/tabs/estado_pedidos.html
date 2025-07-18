@@ -4,18 +4,13 @@
         <div class="col w-auto">
             <div class="card p-4">
                 <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
                 <h4 class="mb-3">Pedidos Pendientes</h4>
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Turno</th>
                             <th>Usuario</th>
+                            <th>Contenido</th>
                             <th>Fecha de entrada</th>
                             <th>Total</th>
                             <th>Acciones</th>
@@ -24,9 +19,13 @@
                     <tbody>
                         {% for pedido in pendientes %}
                         <tr id="pedido-{{ pedido.id }}">
-                            <td>{{ pedido.id }}</td>
                             <td>{{ pedido.turno }}</td>
-                            <td>{{ pedido.usuario.username }}</td>
+                            <td>{{ user.first_name }}</td>
+                            <td>
+                                {% for d in pedido.detalles.all %}
+                                    {{ d.cantidad }} {{ d.plato.nombre }}{% if not forloop.last %} + {% endif %}
+                                {% endfor %}
+                            </td>
                             <td>{{ pedido.fecha_creacion|date:"Y-m-d H:i" }}</td>
                             <td>${{ pedido.total|floatformat:1 }}</td>
                             <td>
@@ -39,14 +38,29 @@
                         {% endfor %}
                     </tbody>
                 </table>
+
+                <!-- Tablas para pedidos en listos desde cocina -->
+                <h4 class="mt-5 mb-3">Pedidos Listos</h4>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Turno</th>
+                            <th>Usuario</th>
+                            <th>Contenido</th> <!-- Todo el contenido detallado del pedido-->
+                            <th>Acciones</th> <!-- para confirmar entrega o cancelar-->
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-listos">
+                        {% include 'cajero/partials/listos_table.html' %}
+                    </tbody>
                 
                 <h4 class="mt-5 mb-3">Últimos pedidos finalizados</h4>
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Turno</th>
                             <th>Usuario</th>
+                            <th>Contenido</th>
                             <th>Fecha de cierre</th>
                             <th>Estado</th>
                             <th>Nota</th>

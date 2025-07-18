@@ -1,0 +1,21 @@
+{% for pedido in listos %}
+<tr id="pedido-{{ pedido.id }}">
+    <td>{{ pedido.turno }}</td>
+    <td>{{ user.first_name }}</td>
+    <td>
+        <ul>
+            {% for item in pedido.detalles.all %}
+                <li>{{ item.plato.nombre }} ({{ item.cantidad }})</li>
+            {% endfor %}
+        </ul>
+    </td>
+    <td>
+    <button class="btn btn-success btn-sm cambiar-estado" data-id="{{ pedido.id }}" data-estado="entregado">Entregar</button>
+    <button class="btn btn-danger btn-sm cancelar-pedido" data-id="{{ pedido.id }}">Cancelar</button>
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="3">No hay pedidos listos</td></tr>
+{% endfor %}
+</tbody>
+</table>

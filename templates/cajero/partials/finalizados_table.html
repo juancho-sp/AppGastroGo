@@ -1,8 +1,12 @@
 {% for pedido in finalizados %}
 <tr>
-    <td>{{ pedido.id }}</td>
     <td>{{ pedido.turno }}</td>
-    <td>{{ pedido.usuario.username }}</td>
+    <td>{{ user.first_name }}</td>
+    <td>
+        {% for d in pedido.detalles.all %}
+            {{ d.cantidad }} {{ d.plato.nombre }}{% if not forloop.last %} + {% endif %}
+        {% endfor %}
+    </td>
     <td>{{ pedido.fecha_actualizacion_estado|date:"Y-m-d H:i" }}</td>
     <td>{{ pedido.estado }}</td>
     <td>{{ pedido.nota_cancelacion|default:"-" }}</td>

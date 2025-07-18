@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from menu.models import Plato
 
+
 @login_required
 def inicioAdministrador(request):
     perfiles = Perfil.objects.select_related('user').all()

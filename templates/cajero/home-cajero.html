@@ -35,6 +35,7 @@
 {% block titulo_principal %}Caja{% endblock %}
 
 {% block contenido %}
+
 {% for message in messages %}
     {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
         <div class="alert alert-danger alert-dismissible-auto">{{ message }}</div>
@@ -80,7 +81,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (target === '#nav-NuevoPedido') {
                         setTimeout(() => {
                             activarFormularioNuevoPedido();
-                        }, 50);
+                        }, 100);
+                    }
+
+                    if (target === '#nav-DetallePedido') {
+                        setTimeout(() => {
+                            activarFormularioNuevoPedido();
+                        }, 100);
                     }
 
                     if (target === '#nav-EstadoPedidos') {
@@ -88,9 +95,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             try {
                                 asignarEventosBotones();
                             } catch (e) {
-                                console.error("❌ Error al asignar eventos:", e);
+                                console.error("Error al asignar eventos:", e);
                             }
-                        }, 50);  // tiempo suficiente para que se inyecte el DOM
+                        }, 100);  // tiempo suficiente para que se inyecte el DOM
                     }
 
                 })
@@ -166,7 +173,7 @@ function activarFormularioNuevoPedido() {
 
 <script>
 function asignarEventosBotones() {
-    console.log("📌 Reasignando eventos a botones...");
+    console.log("Reasignando eventos a botones...");
 
     // ENTREGAR usando modal personalizado
     document.querySelectorAll(".cambiar-estado").forEach(btn => {
@@ -288,7 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             try {
                                 asignarEventosBotones();
                             } catch (e) {
-                                console.error("❌ Error al asignar eventos:", e);
+                                console.error("Error al asignar eventos:", e);
                             }
                         }, 50);  // tiempo suficiente para que se inyecte el DOM
                     }

@@ -4,7 +4,7 @@
     <div class="row mb-3">
         <div class="col">
             <label>Fecha</label>
-            <input type="date" name="fecha" class="form-control" value="{{ fecha|date:'Y-m-d' }}">
+            <input type="date" name="fecha" class="form-control" value="{{ fecha|date:'Y-m-d' }}" default="{{ ahora|date:'Y-m-d' }}">
         </div>
         <div class="col">
             <label>Hora inicio</label>
@@ -15,10 +15,11 @@
             <input type="time" name="hora_fin" class="form-control" value="{{ hora_fin }}">
         </div>
         <div class="col d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            <button type="submit" class="btn btn-primary w-100 m-1">Buscar</button>
         </div>
     </div>
 </form>
+
 
     <p class="text-muted">Pedidos encontrados: {{ pedidos|length }}</p>
 

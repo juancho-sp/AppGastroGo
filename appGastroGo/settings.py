@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'cash_register',  # para gestionar el registro de caja
     'ingreso',  # para autenticación OK
     'django.contrib.humanize',  # para formatear números y fechas
+    'import_export', # para importar y exportar datos
 ]
 
 MIDDLEWARE = [
@@ -119,6 +120,8 @@ TIME_ZONE = 'America/Bogota'
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATIC_ROOT =BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),

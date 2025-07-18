@@ -13,7 +13,7 @@ from django.urls import reverse
 from users.models import Perfil
 from django.db.models import Sum
 from django.views.decorators.http import require_POST
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 
 
@@ -21,6 +21,9 @@ from django.template.loader import render_to_string
 def crear_pedido(request):
     return render(request, 'cajero/home-cajero.html')
 
+@login_required
+def estado_pedidos(request):
+    return render(request, 'cajero/home-cajero.html')
 
 @login_required
 def tab_nuevo_pedido(request):
@@ -113,6 +116,7 @@ def tab_detalle_pedido(request):
     hora_fin_str = request.GET.get('hora_fin')
 
     pedidos = []
+    fecha = None
 
     try:
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -143,8 +147,8 @@ def tab_detalle_pedido(request):
         print("Error al filtrar pedidos:", e)
         pedidos = []
 
-    # ➕ Total de ventas
-    total_ventas = sum(p.total for p in pedidos)
+    # Total de ventas
+    total_ventas = sum(p.total for p in pedidos if p.estado == 'entregado')
 
     context = {
         'pedidos': pedidos,
@@ -159,13 +163,15 @@ def tab_detalle_pedido(request):
 
 @login_required
 def tab_estado_pedidos(request):
-    pendientes = Pedido.objects.filter(estado='pendiente').order_by('-fecha_creacion')
+    pendientes = Pedido.objects.filter(estado='pendiente').order_by('-fecha_creacion')    
     finalizados = Pedido.objects.filter(estado__in=['entregado', 'cancelado']) \
         .order_by('-fecha_actualizacion_estado')[:5]
+    listos = Pedido.objects.filter(estado='preparado').order_by('fecha_actualizacion_estado')
 
     return render(request, 'cajero/tabs/estado_pedidos.html', {
         'pendientes': pendientes,
-        'finalizados': finalizados
+        'finalizados': finalizados,
+        'listos': listos,
     })
 
 
@@ -184,22 +190,38 @@ def cambiar_estado_pedido(request):
         pedido.fecha_actualizacion_estado = timezone.now()  # actualizar fecha
         if nuevo_estado == 'cancelado':
             pedido.nota_cancelacion = nota
+        elif nuevo_estado == 'preparado':            
+            pass  # por ahora no haces nada más
         pedido.save()
+
 
         finalizados = Pedido.objects.filter(estado__in=['entregado', 'cancelado']) \
             .order_by('-fecha_actualizacion_estado')[:5]
+        
+        listos = Pedido.objects.filter(estado='preparado').order_by('fecha_actualizacion_estado')
 
         finalizados_html = render_to_string('cajero/partials/finalizados_table.html', {
             'finalizados': finalizados
         })
 
-        return JsonResponse({'success': True, 'finalizados_html': finalizados_html})
+        listos_html = render_to_string('cajero/partials/listos_table.html', {
+            'listos': listos
+        })
+
+        return JsonResponse({
+            'success': True,
+            'finalizados_html': finalizados_html,
+            'listos_html': listos_html,
+            'mensaje': f"Pedido #{pedido.turno} actualizado a estado '{nuevo_estado}'"
+        })
 
     except Pedido.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})
 
 def es_admin(user):
     return hasattr(user, 'perfil') and user.perfil.rol == 'admin'
+
+
 
 @login_required
 def editar_pedido_admin(request):
@@ -226,3 +248,45 @@ def editar_pedido_admin(request):
         'perfiles': Perfil.objects.all(), 
     }
     return render(request, 'administrador/home-admin.html', context)
+
+@login_required
+def home_cocinero(request):
+    # Solo los pedidos en estado 'pendiente'
+    pedidos = Pedido.objects.filter(estado='pendiente').order_by('fecha_creacion')
+    pedidos_mostrar = pedidos[:6]
+    pedidos_en_cola = pedidos.count() - pedidos_mostrar.count()
+
+    # Estructura los datos que necesitas mostrar en el acordeón
+    lista_pedidos = []
+    for pedido in pedidos_mostrar:
+        detalles = pedido.detalles.all()
+        contenido = []
+        for detalle in detalles:
+            contenido.append({
+                'nombre': detalle.plato.nombre,
+                'nota': detalle.nota or "Sin nota",
+                'cantidad': detalle.cantidad
+            })
+        lista_pedidos.append({
+            'id': pedido.id,
+            'turno': pedido.turno,
+            'contenido': contenido,
+        })
+
+    return render(request, 'cocinero/home-cocinero.html', {
+        'pedidos': lista_pedidos,
+        'en_cola': pedidos_en_cola
+    })
+
+
+
+@require_POST
+@login_required
+def marcar_preparado(request):
+    pedido_id = request.POST.get('pedido_id')
+    pedido = Pedido.objects.filter(id=pedido_id, estado='pendiente').first()
+    if pedido:
+        pedido.estado = 'preparado'
+        pedido.fecha_actualizacion_estado = timezone.now()
+        pedido.save()
+    return HttpResponseRedirect(reverse('home_cocinero'))
